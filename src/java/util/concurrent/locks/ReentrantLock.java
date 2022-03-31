@@ -112,7 +112,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      * Base of synchronization control for this lock. Subclassed
      * into fair and nonfair versions below. Uses AQS state to
      * represent the number of holds on the lock.
-     */
+     */ // 为什么用 static?
     abstract static class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -5179523762034025860L;
 
@@ -194,7 +194,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 
     /**
      * Sync object for non-fair locks
-     */
+     */ // 没有 public, 默认包访问权限.
     static final class NonfairSync extends Sync {
         private static final long serialVersionUID = 7316153563782823691L;
 
@@ -219,7 +219,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      */
     static final class FairSync extends Sync {
         private static final long serialVersionUID = -3000897897090466540L;
-
+        // [1] 获取独占锁 (即设置状态为 1), 所有持有该对象的线程都调用这个方法, (后续说明: 线程调用这个方法后, 必须等待直到获取所)
         final void lock() {
             acquire(1);
         }
@@ -227,22 +227,22 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         /**
          * Fair version of tryAcquire.  Don't grant access unless
          * recursive call or no waiters or is first.
-         */
-        protected final boolean tryAcquire(int acquires) {
+         */ // [1-1-1] 取得独占锁
+        protected final boolean tryAcquire(int acquires) { // accquire 会调用这个方法
             final Thread current = Thread.currentThread();
             int c = getState();
-            if (c == 0) {
-                if (!hasQueuedPredecessors() &&
-                    compareAndSetState(0, acquires)) {
-                    setExclusiveOwnerThread(current);
+            if (c == 0) { // 如果没有上锁
+                if (!hasQueuedPredecessors() && // 如果没有正在等待的线程
+                    compareAndSetState(0, acquires)) {  // 成功取得锁
+                    setExclusiveOwnerThread(current); // 把自己提升为 boss
                     return true;
                 }
             }
-            else if (current == getExclusiveOwnerThread()) {
-                int nextc = c + acquires;
+            else if (current == getExclusiveOwnerThread()) { // 如果已经上锁
+                int nextc = c + acquires; // 重入锁
                 if (nextc < 0)
                     throw new Error("Maximum lock count exceeded");
-                setState(nextc);
+                setState(nextc);  // 将状态++, 所以 状态>1 表示有人获取了该锁不止一次.
                 return true;
             }
             return false;

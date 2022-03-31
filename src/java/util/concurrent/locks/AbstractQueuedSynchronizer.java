@@ -579,14 +579,14 @@ public abstract class AbstractQueuedSynchronizer
      * Inserts node into queue, initializing if necessary. See picture above.
      * @param node the node to insert
      * @return node's predecessor
-     */
+     */ // [1-1-2-1]
     private Node enq(final Node node) {
         for (;;) {
             Node t = tail;
-            if (t == null) { // Must initialize
+            if (t == null) { // Must initialize 如果队列为空, 先初始化
                 if (compareAndSetHead(new Node()))
-                    tail = head;
-            } else {
+                    tail = head; // 头尾指向同一个节点(注意 head.next != tail, 且 head != tail.prev)
+            } else { // 如果队列不为空, 就插到队尾
                 node.prev = t;
                 if (compareAndSetTail(t, node)) {
                     t.next = node;
@@ -601,14 +601,14 @@ public abstract class AbstractQueuedSynchronizer
      *
      * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
      * @return the new node
-     */
+     */ // [1-1-2]
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
         // Try the fast path of enq; backup to full enq on failure
         Node pred = tail;
-        if (pred != null) {
+        if (pred != null) { // 如果有队尾
             node.prev = pred;
-            if (compareAndSetTail(pred, node)) {
+            if (compareAndSetTail(pred, node)) { // 新节点插到队列尾端
                 pred.next = node;
                 return node;
             }
@@ -635,7 +635,7 @@ public abstract class AbstractQueuedSynchronizer
      *
      * @param node the node
      */
-    private void unparkSuccessor(Node node) {
+    private void unparkSuccessor(Node node) { // 如果只有自己怎么办? 这个时候, 存在 head 和 tail, 但它们之间没有联系.
         /*
          * If status is negative (i.e., possibly needing signal) try
          * to clear in anticipation of signalling.  It is OK if this
@@ -654,7 +654,7 @@ public abstract class AbstractQueuedSynchronizer
         Node s = node.next;
         if (s == null || s.waitStatus > 0) {
             s = null;
-            for (Node t = tail; t != null && t != node; t = t.prev)
+            for (Node t = tail; t != null && t != node; t = t.prev) // 如果只有一个节点, head 和 tail 同时指向这个节点, 则 s == null
                 if (t.waitStatus <= 0)
                     s = t;
         }
@@ -803,7 +803,7 @@ public abstract class AbstractQueuedSynchronizer
         if (ws > 0) {
             /*
              * Predecessor was cancelled. Skip over predecessors and
-             * indicate retry.
+             * indicate retry. 前面节点已经取消, 跳过前面的节点, 并示意重试.
              */
             do {
                 node.prev = pred = pred.prev;
@@ -814,7 +814,7 @@ public abstract class AbstractQueuedSynchronizer
              * waitStatus must be 0 or PROPAGATE.  Indicate that we
              * need a signal, but don't park yet.  Caller will need to
              * retry to make sure it cannot acquire before parking.
-             */
+             */ // 这时的 ws 一定是 0 或者 PROPAGATE. 这说明我们需要一个 signal 信号, 而不是停车. 调用者必须再次确认.
             compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
         }
         return false;
@@ -853,7 +853,7 @@ public abstract class AbstractQueuedSynchronizer
      * @param node the node
      * @param arg the acquire argument
      * @return {@code true} if interrupted while waiting
-     */
+     */ // [1-1-3]
     final boolean acquireQueued(final Node node, int arg) {
         boolean failed = true;
         try {
@@ -1193,11 +1193,11 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquire} but is otherwise uninterpreted and
      *        can represent anything you like.
-     */
+     */ // [1-1] 该方法(一定)会取得锁
     public final void acquire(int arg) {
-        if (!tryAcquire(arg) &&
-            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
-            selfInterrupt();
+        if (!tryAcquire(arg) &&  // 取得独占锁失败, 注: 这是个模板方法, 在子类中实现. 例如: ReentrantLock.FairSync
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) // 进入等待队列... 线程休眠... 直到取得锁
+            selfInterrupt(); // 经过(漫长)等待拿到锁后, 线程的状态不知道, 或许在阻塞, 所以叫一下试试.
     }
 
     /**
