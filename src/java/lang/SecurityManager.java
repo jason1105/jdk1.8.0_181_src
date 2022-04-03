@@ -222,7 +222,7 @@ import sun.security.util.SecurityConstants;
  * @see     java.security.ProtectionDomain
  *
  * @since   JDK1.0
- */
+ */ // 检查文件, 网络, 运行时, AWT, 反射.
 public
 class SecurityManager {
 

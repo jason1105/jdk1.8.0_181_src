@@ -233,7 +233,7 @@ public class HashSet<E>
      * @return <tt>true</tt> if the set contained the specified element
      */
     public boolean remove(Object o) {
-        return map.remove(o)==PRESENT;
+        return map.remove(o)==PRESENT; // Set 中存放的是 Key-Value, Key 是实际元素, Value 全部是 PRESENT
     }
 
     /**
