@@ -1464,7 +1464,7 @@ public final class String
      */
     public int hashCode() {
         int h = hash;
-        if (h == 0 && value.length > 0) {
+        if (h == 0 && value.length > 0) { // if no cache
             char val[] = value;
 
             for (int i = 0; i < value.length; i++) {

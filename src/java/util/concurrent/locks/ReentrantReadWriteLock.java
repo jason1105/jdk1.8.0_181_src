@@ -259,10 +259,10 @@ public class ReentrantReadWriteLock
          * and the upper the shared (reader) hold count.
          */
 
-        static final int SHARED_SHIFT   = 16;
-        static final int SHARED_UNIT    = (1 << SHARED_SHIFT);
-        static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1;
-        static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;
+        static final int SHARED_SHIFT   = 16; // 32bit, 高 16 位: 读锁计数. 低 16 位: 写锁计数
+        static final int SHARED_UNIT    = (1 << SHARED_SHIFT);  // 读锁的单位 1, 用来修改读锁数量
+        static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1; // 低 16 位全部为 1 : 写锁最大数量
+        static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1; // 用于取得写锁数量. Line 270
 
         /** Returns the number of shared holds represented in count  */
         static int sharedCount(int c)    { return c >>> SHARED_SHIFT; }
@@ -282,7 +282,7 @@ public class ReentrantReadWriteLock
         /**
          * ThreadLocal subclass. Easiest to explicitly define for sake
          * of deserialization mechanics.
-         */
+         */ // todo why use the class.
         static final class ThreadLocalHoldCounter
             extends ThreadLocal<HoldCounter> {
             public HoldCounter initialValue() {

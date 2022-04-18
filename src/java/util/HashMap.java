@@ -177,18 +177,18 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * (see TREEIFY_THRESHOLD). And when they become too small (due to
      * removal or resizing) they are converted back to plain bins.  In
      * usages with well-distributed user hashCodes, tree bins are
-     * rarely used.  Ideally, under random hashCodes, the frequency of
-     * nodes in bins follows a Poisson distribution
-     * (http://en.wikipedia.org/wiki/Poisson_distribution) with a
+     * rarely used.  Ideally, under random hashCodes, the frequency of // 理想状态下, 基于hashcode,
+     * nodes in bins follows a Poisson distribution                    // 对0.75的因子, 平均来说, bin 中的节点的频率符合 0.5 参数的泊松分布 (bins 指的是 bucket 中的节点.)
+     * (http://en.wikipedia.org/wiki/Poisson_distribution) with a      //
      * parameter of about 0.5 on average for the default resizing
      * threshold of 0.75, although with a large variance because of
      * resizing granularity. Ignoring variance, the expected
      * occurrences of list size k are (exp(-0.5) * pow(0.5, k) /
      * factorial(k)). The first values are:
      *
-     * 0:    0.60653066
-     * 1:    0.30326533
-     * 2:    0.07581633
+     * 0:    0.60653066   // 链表 size = 0 时, 随机节点落入 bin 中的概率
+     * 1:    0.30326533   // 链表 table size = 1 时, 随机节点落入 bin 中的概率
+     * 2:    0.07581633   // ...
      * 3:    0.01263606
      * 4:    0.00157952
      * 5:    0.00015795
@@ -254,7 +254,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * than 2 and should be at least 8 to mesh with assumptions in
      * tree removal about conversion back to plain bins upon
      * shrinkage.
-     */
+     */  // 必须大于 2, 最少是 8,
     static final int TREEIFY_THRESHOLD = 8;
 
     /**
@@ -342,13 +342,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns x's Class if it is of the form "class C implements
      * Comparable<C>", else null.
-     */
+     */ // Return x's Class if it is implements Comparable Interface.
     static Class<?> comparableClassFor(Object x) {
         if (x instanceof Comparable) {
             Class<?> c; Type[] ts, as; Type t; ParameterizedType p;
             if ((c = x.getClass()) == String.class) // bypass checks
                 return c;
-            if ((ts = c.getGenericInterfaces()) != null) {
+            if ((ts = c.getGenericInterfaces()) != null) { // Get interfaces
                 for (int i = 0; i < ts.length; ++i) {
                     if (((t = ts[i]) instanceof ParameterizedType) &&
                         ((p = (ParameterizedType)t).getRawType() ==
@@ -375,14 +375,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns a power of two size for the given target capacity.
      */
-    static final int tableSizeFor(int cap) {
-        int n = cap - 1;
-        n |= n >>> 1;
-        n |= n >>> 2;
-        n |= n >>> 4;
-        n |= n >>> 8;
-        n |= n >>> 16;
-        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+    static final int tableSizeFor(int cap) { // e.g. cap == 9 == 0x0000_1010
+        int n = cap - 1; // n : 0x0000_1001    考虑 cap 正好是 2 的整数次幂, 所以减 1
+        n |= n >>> 1;    // n : 0x0000_1101
+        n |= n >>> 2;    // n : 0x0000_1111
+        n |= n >>> 4;    // n : 0x0000_1111
+        n |= n >>> 8;    // n : 0x0000_1111
+        n |= n >>> 16;   // n : 0x0000_1111
+        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1; // n + 1 == 0x0001_0000 == 16
     }
 
     /* ---------------- Fields -------------- */
@@ -624,33 +624,33 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
-        Node<K,V>[] tab; Node<K,V> p; int n, i;
+        Node<K,V>[] tab; Node<K,V> p; int n, i; // p is node in table
         if ((tab = table) == null || (n = tab.length) == 0)
             n = (tab = resize()).length;
-        if ((p = tab[i = (n - 1) & hash]) == null)
-            tab[i] = newNode(hash, key, value, null);
+        if ((p = tab[i = (n - 1) & hash]) == null) // empty bin
+            tab[i] = newNode(hash, key, value, null); // put a new node in bin.
         else {
-            Node<K,V> e; K k;
-            if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && key.equals(k))))
+            Node<K,V> e; K k; // e: existed node (We should update its value.)
+            if (p.hash == hash && // p is equal to hash of the key for waitting add
+                ((k = p.key) == key || (key != null && key.equals(k))))  // if both key are equal, == for Object and equals() for Stirng.
                 e = p;
             else if (p instanceof TreeNode)
-                e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
-            else {
-                for (int binCount = 0; ; ++binCount) {
-                    if ((e = p.next) == null) {
-                        p.next = newNode(hash, key, value, null);
-                        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
-                            treeifyBin(tab, hash);
+                e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value); // put into tree if Tree is exist.
+            else { // p is predcessor node in list bin
+                for (int binCount = 0; ; ++binCount) { // Iterate List bins.
+                    if ((e = p.next) == null) { // Cannot find
+                        p.next = newNode(hash, key, value, null); // new node
+                        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st // treeify if lens of list bins is larger than threshould.
+                            treeifyBin(tab, hash); // convert List bins to Tree bins
                         break;
                     }
-                    if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && key.equals(k))))
+                    if (e.hash == hash && // found node
+                        ((k = e.key) == key || (key != null && key.equals(k)))) // bingo, we just need to update afterwards.
                         break;
                     p = e;
                 }
             }
-            if (e != null) { // existing mapping for key
+            if (e != null) { // existing mapping for key, update value.
                 V oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
@@ -695,7 +695,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
         if (newThr == 0) {
-            float ft = (float)newCap * loadFactor;
+            float ft = (float)newCap * loadFactor; // 计算出下一次扩容的门限
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
@@ -754,12 +754,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
-        if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
+        if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY) // table is null or length of  table less than 64
             resize();
-        else if ((e = tab[index = (n - 1) & hash]) != null) {
-            TreeNode<K,V> hd = null, tl = null;
-            do {
-                TreeNode<K,V> p = replacementTreeNode(e, null);
+        else if ((e = tab[index = (n - 1) & hash]) != null) { // node e is in the buld. e -> node -> node -> node....
+            TreeNode<K,V> hd = null, tl = null; // hd: head, tl: temp
+            do { // convert e -> node -> node -> node to e <-> node <-> node <-> node
+                TreeNode<K,V> p = replacementTreeNode(e, null); // convert Node to TreeNode
                 if (tl == null)
                     hd = p;
                 else {
@@ -768,7 +768,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 }
                 tl = p;
             } while ((e = e.next) != null);
-            if ((tab[index] = hd) != null)
+            if ((tab[index] = hd) != null) // put TreeNode into bin.
                 hd.treeify(tab);
         }
     }
@@ -1800,7 +1800,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Entry for Tree bins. Extends LinkedHashMap.Entry (which in turn
      * extends Node) so can be used as extension of either regular or
      * linked node.
-     */
+     */ // Node has next / prev / after / before / left / right / parent
     static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
         TreeNode<K,V> left;
@@ -1906,7 +1906,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         /**
          * Forms tree of the nodes linked from this node.
          * @return root of tree
-         */
+         */ // TreeNode.treeify()
         final void treeify(Node<K,V>[] tab) {
             TreeNode<K,V> root = null;
             for (TreeNode<K,V> x = this, next; x != null; x = next) {
@@ -1924,14 +1924,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     for (TreeNode<K,V> p = root;;) {
                         int dir, ph;
                         K pk = p.key;
-                        if ((ph = p.hash) > h)
+                        if ((ph = p.hash) > h) // compare by hash
                             dir = -1;
-                        else if (ph < h)
+                        else if (ph < h) // compare by hash
                             dir = 1;
                         else if ((kc == null &&
-                                  (kc = comparableClassFor(k)) == null) ||
-                                 (dir = compareComparables(kc, k, pk)) == 0)
-                            dir = tieBreakOrder(k, pk);
+                                  (kc = comparableClassFor(k)) == null) ||  // Key is not Comparable
+                                 (dir = compareComparables(kc, k, pk)) == 0) // or result compared is 0
+                            dir = tieBreakOrder(k, pk); // compare by objec.hash()
 
                         TreeNode<K,V> xp = p;
                         if ((p = (dir <= 0) ? p.left : p.right) == null) {

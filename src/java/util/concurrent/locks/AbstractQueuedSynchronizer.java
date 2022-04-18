@@ -582,14 +582,14 @@ public abstract class AbstractQueuedSynchronizer
      */ // [1-1-2-1]
     private Node enq(final Node node) {
         for (;;) {
-            Node t = tail;
+            Node t = tail; // t is the old_tail;
             if (t == null) { // Must initialize 如果队列为空, 先初始化
                 if (compareAndSetHead(new Node()))
                     tail = head; // 头尾指向同一个节点(注意 head.next != tail, 且 head != tail.prev)
             } else { // 如果队列不为空, 就插到队尾
                 node.prev = t;
-                if (compareAndSetTail(t, node)) {
-                    t.next = node;
+                if (compareAndSetTail(t, node)) { // tail = node;
+                    t.next = node; // old_tail.next = node;
                     return t;
                 }
             }
@@ -1516,8 +1516,8 @@ public abstract class AbstractQueuedSynchronizer
         Node t = tail; // Read fields in reverse initialization order
         Node h = head;
         Node s;
-        return h != t &&
-            ((s = h.next) == null || s.thread != Thread.currentThread());
+        return h != t && // 如果队列不是空的, 可能有排队的线程, 也可能正在初始化: 此时 head != null && tail == null.
+            ((s = h.next) == null || s.thread != Thread.currentThread()); // 如果 h.next == null 说明正在初始化, 且有一个节点正在插入队列.
     }
 
 
