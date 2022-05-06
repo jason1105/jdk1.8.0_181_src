@@ -184,12 +184,12 @@ public class FutureTask<V> implements RunnableFuture<V> {
 
     /**
      * @throws CancellationException {@inheritDoc}
-     */
+     */ // get result by blocking current thread.
     public V get() throws InterruptedException, ExecutionException {
         int s = state;
         if (s <= COMPLETING)
-            s = awaitDone(false, 0L);
-        return report(s);
+            s = awaitDone(false, 0L); // wait until task finish.
+        return report(s); // get result
     }
 
     /**
@@ -360,7 +360,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
     /**
      * Removes and signals all waiting threads, invokes done(), and
      * nulls out callable.
-     */
+     */ // Be called by run() when task is finished.
     private void finishCompletion() {
         // assert state > COMPLETING;
         for (WaitNode q; (q = waiters) != null;) {
@@ -369,7 +369,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     Thread t = q.thread;
                     if (t != null) {
                         q.thread = null;
-                        LockSupport.unpark(t);
+                        LockSupport.unpark(t); // Unpart thread who are waiting for result.
                     }
                     WaitNode next = q.next;
                     if (next == null)

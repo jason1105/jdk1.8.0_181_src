@@ -1248,8 +1248,8 @@ class Thread implements Runnable {
         }
 
         if (millis == 0) {
-            while (isAlive()) {
-                wait(0);
+            while (isAlive()) { // if I still alive
+                wait(0); // current thread must be wait for me.
             }
         } else {
             while (isAlive()) {

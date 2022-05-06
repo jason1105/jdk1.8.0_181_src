@@ -375,14 +375,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns a power of two size for the given target capacity.
      */
-    static final int tableSizeFor(int cap) { // e.g. cap == 9 == 0x0000_1010
-        int n = cap - 1; // n : 0x0000_1001    考虑 cap 正好是 2 的整数次幂, 所以减 1
-        n |= n >>> 1;    // n : 0x0000_1101
-        n |= n >>> 2;    // n : 0x0000_1111
-        n |= n >>> 4;    // n : 0x0000_1111
-        n |= n >>> 8;    // n : 0x0000_1111
-        n |= n >>> 16;   // n : 0x0000_1111
-        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1; // n + 1 == 0x0001_0000 == 16
+    static final int tableSizeFor(int cap) { // e.g. cap == 33 == 0x0010_0001
+        int n = cap - 1; // n : 0x0010_0000    考虑 cap 正好是 2 的整数次幂, 所以减 1
+        n |= n >>> 1;    // n : 0x0011_0000     保证cap最高 2 位是1
+        n |= n >>> 2;    // n : 0x0011_1100     保证cap最高 4 位是1
+        n |= n >>> 4;    // n : 0x0011_1111     保证cap最高 8 位是1
+        n |= n >>> 8;    // n : 0x0011_1111     保证cap最高 16 位是1
+        n |= n >>> 16;   // n : 0x0011_1111     保证cap最高 32 位是1
+        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1; // n = 0x0011 1111, 接下来 n + 1 == 0x0100_0000 == 64
     }
 
     /* ---------------- Fields -------------- */
